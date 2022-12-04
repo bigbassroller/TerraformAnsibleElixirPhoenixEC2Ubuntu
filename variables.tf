@@ -78,7 +78,7 @@ variable "letsencrypt_email" {
 
 variable "db_name" {
   description = "RDS database name"
-  default     = "srw_db"
+  default     = "sre_db"
 }
 
 variable "db_user" {

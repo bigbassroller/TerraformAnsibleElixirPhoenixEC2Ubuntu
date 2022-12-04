@@ -8,83 +8,83 @@ resource "random_id" "random" {
   byte_length = 2
 }
 
-resource "aws_vpc" "srw_vpc" {
+resource "aws_vpc" "sre_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
   tags = {
-    Name = "srw_vpc-${random_id.random.id}"
+    Name = "sre_vpc-${random_id.random.id}"
   }
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "aws_internet_gateway" "srw_internet_gateway" {
-  vpc_id = aws_vpc.srw_vpc.id
+resource "aws_internet_gateway" "sre_internet_gateway" {
+  vpc_id = aws_vpc.sre_vpc.id
 
   tags = {
-    Name = "srw_igw"
+    Name = "sre_igw"
   }
 }
 
-resource "aws_route_table" "srw_public_rt" {
-  vpc_id = aws_vpc.srw_vpc.id
+resource "aws_route_table" "sre_public_rt" {
+  vpc_id = aws_vpc.sre_vpc.id
 
   tags = {
-    Name = "srw-public"
+    Name = "sre-public"
   }
 }
 
 resource "aws_route" "default_route" {
-  route_table_id         = aws_route_table.srw_public_rt.id
+  route_table_id         = aws_route_table.sre_public_rt.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.srw_internet_gateway.id
+  gateway_id             = aws_internet_gateway.sre_internet_gateway.id
 }
 
-resource "aws_default_route_table" "srw_private_rt" {
-  default_route_table_id = aws_vpc.srw_vpc.default_route_table_id
+resource "aws_default_route_table" "sre_private_rt" {
+  default_route_table_id = aws_vpc.sre_vpc.default_route_table_id
 
   tags = {
-    Name = "srw_private"
+    Name = "sre_private"
   }
 }
 
-resource "aws_subnet" "srw_public_subnet" {
+resource "aws_subnet" "sre_public_subnet" {
   count                   = length(local.azs)
-  vpc_id                  = aws_vpc.srw_vpc.id
+  vpc_id                  = aws_vpc.sre_vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   map_public_ip_on_launch = true
   availability_zone       = local.azs[count.index]
 
   tags = {
-    Name = "srw_public_${count.index + 1}"
+    Name = "sre_public_${count.index + 1}"
   }
 }
 
-resource "aws_subnet" "srw_private_subnet" {
+resource "aws_subnet" "sre_private_subnet" {
   count                   = length(local.azs)
-  vpc_id                  = aws_vpc.srw_vpc.id
+  vpc_id                  = aws_vpc.sre_vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + length(local.azs))
   map_public_ip_on_launch = false
   availability_zone       = local.azs[count.index]
 
   tags = {
-    Name = "srw_private_${count.index + 1}"
+    Name = "sre_private_${count.index + 1}"
   }
 }
 
-resource "aws_route_table_association" "srw_public_assoc" {
+resource "aws_route_table_association" "sre_public_assoc" {
   count          = length(local.azs)
-  subnet_id      = aws_subnet.srw_public_subnet.*.id[count.index]
-  route_table_id = aws_route_table.srw_public_rt.id
+  subnet_id      = aws_subnet.sre_public_subnet.*.id[count.index]
+  route_table_id = aws_route_table.sre_public_rt.id
 }
 
-resource "aws_security_group" "srw_sg" {
+resource "aws_security_group" "sre_sg" {
   name        = "public_sg"
   description = "Security group for public instances"
-  vpc_id      = aws_vpc.srw_vpc.id
+  vpc_id      = aws_vpc.sre_vpc.id
 }
 
 resource "aws_security_group_rule" "ingress_all" {
@@ -93,7 +93,7 @@ resource "aws_security_group_rule" "ingress_all" {
   to_port           = 65535
   protocol          = "-1"
   cidr_blocks       = [var.access_ip, var.cloud9_ip]
-  security_group_id = aws_security_group.srw_sg.id
+  security_group_id = aws_security_group.sre_sg.id
 }
 
 resource "aws_security_group_rule" "egress_all" {
@@ -102,21 +102,21 @@ resource "aws_security_group_rule" "egress_all" {
   to_port           = 65535
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.srw_sg.id
+  security_group_id = aws_security_group.sre_sg.id
 }
 
-resource "aws_db_subnet_group" "srw_db_subnet_group" {
-  name       = "srw_db"
-  subnet_ids = aws_subnet.srw_private_subnet.*.id
+resource "aws_db_subnet_group" "sre_db_subnet_group" {
+  name       = "sre_db"
+  subnet_ids = aws_subnet.sre_private_subnet.*.id
 
   tags = {
-    Name = "srw_db_subnet_group"
+    Name = "sre_db_subnet_group"
   }
 }
 
-resource "aws_security_group" "srw_db_security_group" {
-  name   = "srw_db_security_group"
-  vpc_id = aws_vpc.srw_vpc.id
+resource "aws_security_group" "sre_db_security_group" {
+  name   = "sre_db_security_group"
+  vpc_id = aws_vpc.sre_vpc.id
 
   ingress {
     from_port   = 3306
@@ -133,6 +133,6 @@ resource "aws_security_group" "srw_db_security_group" {
   }
 
   tags = {
-    Name = "srw_db_security_group"
+    Name = "sre_db_security_group"
   }
 }

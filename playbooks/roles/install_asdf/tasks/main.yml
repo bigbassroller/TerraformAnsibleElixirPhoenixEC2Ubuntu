@@ -1,0 +1,6 @@
+---
+- name: Testing out Ansible
+  ansible.builtin.debug:
+    msg:
+    - "Ansible out here"
+
