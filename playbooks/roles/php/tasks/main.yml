@@ -1,0 +1,27 @@
+---
+# tasks file for php
+- name: Install php extensions
+  ansible.builtin.apt:
+    pkg:
+    - php7.4
+    - php7.4-fpm
+    - php7.4-mysql
+    - php7.4-gd
+    - php-ssh2
+    # - php7.4-mcrypt
+  notify:
+    - restart nginx
+  become: yes
+
+- name: Setup php-fpm
+  replace: dest=/etc/php/7.4/fpm/php.ini regexp="(;cgi.fix_pathinfo=1)" replace="cgi.fix_pathinfo=0"
+  notify:
+    - restart nginx
+  become: yes
+
+- name: Add php settings
+  template: src=../../nginx/templates/nginx-wp-common.conf dest=/etc/nginx/nginx-wp-common.conf owner=www-data group=www-data mode=0644
+  notify:
+    - restart nginx
+  become: yes
+

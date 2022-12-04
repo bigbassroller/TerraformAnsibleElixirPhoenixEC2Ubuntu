@@ -1,0 +1,59 @@
+---
+- name: Download file with from private Github repo
+  ansible.builtin.get_url:
+    url: https://api.github.com/repos/{{github_user}}/{{github_repo}}/tarball
+    dest: /var/www/{{ main_domain_name }}/{{ main_domain_name }}.tar.gz
+    headers:
+      Authorization: "Token {{github_token}}"
+      Content-Type: "application/json"
+
+- name: Extract tar.gz to /var/www/{{ main_domain_name }}
+  unarchive:
+    src: /var/www/{{ main_domain_name }}/{{ main_domain_name }}.tar.gz
+    dest: /var/www/{{ main_domain_name }}/
+    remote_src: yes
+    list_files: yes
+  register: archive_contents
+  tags: [ wordpress ]
+  
+- name: Move archive contents to /var/www/{{ main_domain_name }}/
+  ansible.builtin.copy:
+    src: "/var/www/{{ main_domain_name }}/{{archive_contents.files[0]}}/"
+    dest: "/var/www/{{ main_domain_name }}/"
+    remote_src: yes
+  tags: [ wordpress ]
+
+- name: Set ownership of /var/www/{{ main_domain_name }}
+  file:
+    path: "/var/www/{{ main_domain_name }}"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+  tags: [ wordpress ]
+
+- name: Set permissions for /var/www/{{ main_domain_name }}/ directories
+  shell: "/usr/bin/find /var/www/{{ main_domain_name }}/ -type d -exec chmod 750 {} \\;"
+  tags: [ wordpress ]
+
+- name: Set permissions for /var/www/{{ main_domain_name }}/ files
+  shell: "/usr/bin/find /var/www/{{ main_domain_name }}/ -type f -exec chmod 640 {} \\;"
+  tags: [ wordpress ]
+
+- name: Set up wp-config
+  template:
+    src: "templates/wp-config.php.j2"
+    dest: "/var/www/{{ main_domain_name }}/wp-config.php"
+  tags: [ wordpress ]
+
+- name: Remove /var/www/{{ main_domain_name }}/{{archive_contents.files[0]}}/
+  file:
+    state: absent
+    path: "/var/www/{{ main_domain_name }}/{{archive_contents.files[0]}}/"
+  tags: [ wordpress ]
+  
+- name: Remove  /var/www/{{ main_domain_name }}/{{ main_domain_name }}.tar.gz
+  file:
+    state: absent
+    path: /var/www/{{ main_domain_name }}/{{ main_domain_name }}.tar.gz
+  tags: [ wordpress ]

@@ -1,0 +1,1 @@
+{"main_domain_name": "${main_domain_name}","db_user": "${db_user}","db_password": "${db_password}","db_name": "${db_name}","db_host": "${db_host}","github_token": "${github_token}","github_user": "${github_user}","github_repo": "${github_repo}","letsencrypt_email": "${letsencrypt_email}"}

@@ -1,0 +1,7 @@
+- name: Deploy index.php
+  copy:
+    src: index.php
+    dest: /var/www/{{ main_domain_name }}/index.php
+    owner: www-data
+    group: www-data
+    mode: u=rw,g=r,o=r

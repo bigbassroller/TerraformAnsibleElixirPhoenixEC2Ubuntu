@@ -1,0 +1,14 @@
+- hosts: servers
+  become: true
+  gather_facts: False
+
+  roles:
+    - role: secure_server
+    - role: nginx
+    - role: php
+    - role: letsencrypt
+      vars:
+        deploy_sample_html: false
+        all_domain_names:
+          - "{{ main_domain_name }}"
+    - role: install_wordpress
