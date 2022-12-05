@@ -114,7 +114,9 @@ resource "null_resource" "install_asdf" {
   provisioner "local-exec" {
     command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i hosts.txt --key-file /home/ubuntu/.ssh/devops_rsa playbooks/install_asdf.yml"
   }
-
+  triggers = {
+    always_run = timestamp()
+  }
   depends_on = [null_resource.ssh]
 }
 
