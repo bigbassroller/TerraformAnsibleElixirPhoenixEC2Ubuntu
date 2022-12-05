@@ -1,6 +1,14 @@
 - hosts: servers
-  become: true
-  gather_facts: False
+  # become: true
+  gather_facts: true
 
   roles:
     - role: install_asdf
+      vars:
+        asdf_version: "v0.10.2"
+        asdf_user: "build"
+        asdf_group: "build"
+        asdf_plugins: []
+        asdf_apt_global_dependencies: ["unzip", "git", "curl", "autoconf", "automake", "gcc", "g++", "make", "patch", "pkg-config", "binutils", "libtool", "bison", "libreadline-dev"]
+        asdf_apt_erlang_dependencies: ["fop", "gettext", "xsltproc", "libncurses5-dev", "libssl-dev", "libxslt-dev", "libyaml-dev", "zlib1g-dev"]
+        asdf_apt_nodejs_dependencies: ["gpg", "dirmngr"]
