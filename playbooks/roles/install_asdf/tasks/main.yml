@@ -1,6 +1,73 @@
 ---
-- name: Testing out Ansible
-  ansible.builtin.debug:
-    msg:
-    - "Ansible out here"
+- name: Ensure group "build" exists
+  group:
+    name: build
+    state: present
 
+- name: Add the user 'build' with a home directory
+  user:
+    name: build
+    home: /home/build
+    group: build
+
+- name: "ensure asdf_dir presence and ownership"
+  file:
+    path: "/home/build/.asdf"
+    owner: build
+    group: build
+    state: directory
+
+
+- name: Ensure dependencies are installed
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - build-essential
+      - curl
+      - git
+      - acl
+
+- name: Add asdf to the shell profile
+  lineinfile:
+    path: ~/.bashrc
+    line: '. /home/build/.asdf/asdf.sh'
+    create: true
+
+
+- name: Clone the asdf repository
+  git:
+    repo: 'https://github.com/asdf-vm/asdf.git'
+    dest: ~/.asdf
+    version: v0.10.2
+  become: yes
+  become_user: build
+
+
+
+
+# - name: Add asdf to the shell profile
+#   lineinfile:
+#     path: ~/.bashrc
+#     line: '. $HOME/.asdf/completions/asdf.bash'
+#     create: true
+
+# - name: Reload the shell profile
+#   shell: . ~/.bashrc
+
+# - name: Install asdf plugins
+#   shell: asdf plugin-add <PLUGIN_NAME>
+#   with_items:
+#     - nodejs
+#     - python
+#     - ruby
+#     - golang
+
+# - name: Install asdf versions
+#   shell: asdf install <PLUGIN_NAME> <VERSION>
+#   with_items:
+#     - nodejs: 12.16.3
+#     - python: 3.8.2
+#     - ruby: 2.7.1
+#     - golang: 1.14.2
