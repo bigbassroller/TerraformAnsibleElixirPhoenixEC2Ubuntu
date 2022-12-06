@@ -1,62 +1,82 @@
 ---
 # tasks file for harden
+# tasks file for harden
 - name: Update and upgrade apt packages
   apt:
-    upgrade: 'yes'
-    update_cache: 'yes'
+    upgrade: yes
+    update_cache: yes
     cache_valid_time: 86400 #One day
 
-- name: Disable admin group in sudoers
-  lineinfile:
-    path: /etc/sudoers
-    state: absent
-    regexp: "^%admin"
-    line: "#%admin ALL=(ALL) ALL"
-    validate: "/usr/sbin/visudo -cf %s"
+- name: Ensure deploy user present
+  user:
+    name: deploy
+    shell: /bin/bash
+    password: "{{ hashed_deploy_user_password }}"
 
-- name: Disable sudo group in sudoers
-  lineinfile:
-    path: /etc/sudoers
-    state: absent
-    regexp: "^%sudo"
-    line: "#%sudo ALL=(ALL) ALL"
-    validate: "/usr/sbin/visudo -cf %s"
-
-- name: Disable root login via password
-  lineinfile:
-    path: /etc/ssh/sshd_config
+- name: Set authorized key taken from file
+  authorized_key:
+    user: deploy
     state: present
-    regexp: "^PermitRootLogin"
-    line: "PermitRootLogin prohibit-password"
+    key: "{{ lookup('file', '../../../files/keys/{{ login_ssh_public_key_filename }}') }}"
 
-- name: Disable PasswordAuthentication
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    state: present
-    regexp: "^PasswordAuthentication"
-    line: "PasswordAuthentication no"
+- name: Set permissions on /home/deploy/.ssh/authorized_keys
+  file:
+    path: /home/deploy/.ssh/authorized_keys
+    owner: deploy
+    group: deploy
+    mode: 0400
+    
+# - name: Disable admin group in sudoers
+#   lineinfile:
+#     path: /etc/sudoers
+#     state: absent
+#     regexp: "^%admin"
+#     line: "#%admin ALL=(ALL) ALL"
+#     validate: "/usr/sbin/visudo -cf %s"
 
-- name: Install unattended-upgrades package
-  apt:
-    name: unattended-upgrades
-    update_cache: yes
+# - name: Disable sudo group in sudoers
+#   lineinfile:
+#     path: /etc/sudoers
+#     state: absent
+#     regexp: "^%sudo"
+#     line: "#%sudo ALL=(ALL) ALL"
+#     validate: "/usr/sbin/visudo -cf %s"
 
-- name: Enable periodic updates
-  copy:
-    src: ../files/10periodic
-    dest: /etc/apt/apt.conf.d/10periodic
-    owner: root
-    group: root
-    mode: 0644
+# - name: Disable root login via password
+#   lineinfile:
+#     path: /etc/ssh/sshd_config
+#     state: present
+#     regexp: "^PermitRootLogin"
+#     line: "PermitRootLogin prohibit-password"
 
-- name: Enable ufw access for OpenSSH
-  ufw:
-    rule: allow
-    name: OpenSSH
+# - name: Disable PasswordAuthentication
+#   lineinfile:
+#     path: /etc/ssh/sshd_config
+#     state: present
+#     regexp: "^PasswordAuthentication"
+#     line: "PasswordAuthentication no"
 
-- name: Enable ufw
-  ufw:
-    state: enabled
+# - name: Install unattended-upgrades package
+#   apt:
+#     name: unattended-upgrades
+#     update_cache: yes
+
+# - name: Enable periodic updates
+#   copy:
+#     src: ../files/10periodic
+#     dest: /etc/apt/apt.conf.d/10periodic
+#     owner: root
+#     group: root
+#     mode: 0644
+
+# - name: Enable ufw access for OpenSSH
+#   ufw:
+#     rule: allow
+#     name: OpenSSH
+
+# - name: Enable ufw
+#   ufw:
+#     state: enabled
 
 - name: Unconditionally reboot the machine after applying the updates
   reboot:
