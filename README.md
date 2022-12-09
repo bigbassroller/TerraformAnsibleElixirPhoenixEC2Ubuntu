@@ -1,4 +1,5 @@
-# Terraform, Ansible and WordPress on EC2 Ubuntu
+# THIS IS A WORK IN PROGRESS!
+# Terraform, Ansible and ~~WordPress~~ Elixir/Phoenix on EC2 Ubuntu
 
 ## Prerequisite
 1. An Ubuntu instance with **aws_credentials** installed inside **/home/ubuntu/.aws/credentials** directory.
