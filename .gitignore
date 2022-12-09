@@ -11,3 +11,5 @@ prod.tfvars
 *.pem
 **/files/keys/*
 **/!files/keys/.gitkeep
+
+debug

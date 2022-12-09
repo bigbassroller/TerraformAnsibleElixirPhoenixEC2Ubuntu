@@ -5,7 +5,7 @@
   roles:
     - role: secure_server
       vars:
-        hashed_deploy_user_password: $6$Drumm420$og5WPpsFlFnwSKuZ.4CX44trTk4Er6gF5Izvt2TxqFOrMcQ5NEkgfTVBM7L8SIasStDRRxB5ur0cRXoGB1R8U.
-        login_ssh_public_key_filename: srwkey.pub
+        hashed_deploy_user_password: $2y$10$KX9X3rq2RCfleFlbZKDB2ObA70ABr6gD3Ixgw1aJy.nHbiviH9RQG
+        login_ssh_public_key_filename: deploy.pub
         has_deployment_keys: true
         has_ssh_config: true
