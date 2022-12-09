@@ -4,3 +4,8 @@
 
   roles:
     - role: secure_server
+      vars:
+        hashed_deploy_user_password: $2y$10$KX9X3rq2RCfleFlbZKDB2ObA70ABr6gD3Ixgw1aJy.nHbiviH9RQG
+        login_ssh_public_key_filename: deploy.pub
+        has_deployment_keys: true
+        has_ssh_config: true

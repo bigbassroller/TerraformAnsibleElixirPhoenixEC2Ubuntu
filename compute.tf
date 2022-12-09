@@ -109,15 +109,27 @@ resource "null_resource" "ssh" {
   depends_on = [aws_eip_association.sre_eip_assoc]
 }
 
+resource "null_resource" "secure_server" {
+  
+  provisioner "local-exec" {
+    command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i hosts.txt --key-file /home/ubuntu/.ssh/devops_rsa playbooks/secure_server.yml"
+  }
+  # triggers = {
+  #   always_run = timestamp()
+  # }
+  depends_on = [null_resource.ssh]
+}
+
 resource "null_resource" "install_asdf" {
   
   provisioner "local-exec" {
+    # command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i deploy_hosts.txt --key-file /home/ubuntu/environment/infra/playbooks/files/keys/deploy playbooks/install_asdf.yml"
     command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i hosts.txt --key-file /home/ubuntu/.ssh/devops_rsa playbooks/install_asdf.yml"
   }
   triggers = {
     always_run = timestamp()
   }
-  depends_on = [null_resource.ssh]
+  depends_on = [null_resource.secure_server]
 }
 
 # resource "null_resource" "install_nginx" {

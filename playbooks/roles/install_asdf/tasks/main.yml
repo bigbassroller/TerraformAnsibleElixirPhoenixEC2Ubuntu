@@ -1,22 +1,10 @@
 ---
-- name: Ensure group "build" exists
-  group:
-    name: build
-    state: present
-
-- name: Add the user 'build' with a home directory
-  user:
-    name: build
-    home: /home/build
-    group: build
-
 - name: "ensure asdf_dir presence and ownership"
   file:
-    path: "/home/build/.asdf"
-    owner: build
-    group: build
+    path: "/home/deploy/.asdf"
+    owner: deploy
+    group: deploy
     state: directory
-
 
 - name: Ensure dependencies are installed
   apt:
@@ -28,33 +16,31 @@
       - curl
       - git
       - acl
-
+  # become: yes
+      
 - name: Add asdf to the shell profile
   lineinfile:
     path: ~/.bashrc
-    line: '. /home/build/.asdf/asdf.sh'
+    line: '. /home/deploy/.asdf/asdf.sh'
     create: true
 
 
 - name: Clone the asdf repository
   git:
     repo: 'https://github.com/asdf-vm/asdf.git'
-    dest: ~/.asdf
+    dest: /home/deploy/.asdf/
     version: v0.10.2
   become: yes
-  become_user: build
+  become_user: deploy
+      
+- name: Add asdf to the shell profile
+  lineinfile:
+    path: ~/.bashrc
+    line: '. $HOME/.asdf/completions/asdf.bash'
+    create: true
 
-
-
-
-# - name: Add asdf to the shell profile
-#   lineinfile:
-#     path: ~/.bashrc
-#     line: '. $HOME/.asdf/completions/asdf.bash'
-#     create: true
-
-# - name: Reload the shell profile
-#   shell: . ~/.bashrc
+- name: Reload the shell profile
+  shell: . ~/.bashrc
 
 # - name: Install asdf plugins
 #   shell: asdf plugin-add <PLUGIN_NAME>

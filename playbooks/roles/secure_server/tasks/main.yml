@@ -2,10 +2,42 @@
 # tasks file for harden
 - name: Update and upgrade apt packages
   apt:
-    upgrade: 'yes'
-    update_cache: 'yes'
+    upgrade: yes
+    update_cache: yes
     cache_valid_time: 86400 #One day
 
+- name: Ensure group "deploy" exists
+  group:
+    name: deploy
+    state: present
+    
+- name: Add the user 'deploy' with a home directory
+  user:
+    name: deploy
+    home: /home/deploy
+    group: deploy
+    shell: /bin/bash
+    password: "{{ hashed_deploy_user_password }}"
+    
+- name: Set authorized key taken from file
+  authorized_key:
+    user: deploy
+    state: present
+    key: "{{ lookup('file', 'keys/{{ login_ssh_public_key_filename }}') }}"
+
+- name: Set permissions on /home/deploy/.ssh/authorized_keys
+  file:
+    path: /home/deploy/.ssh/authorized_keys
+    owner: deploy
+    group: deploy
+    mode: 0400
+
+- include_tasks: copy_deployment_keys.yml
+  when: has_deployment_keys
+
+- include_tasks: copy_ssh_config.yml
+  when: has_ssh_config
+  
 - name: Disable admin group in sudoers
   lineinfile:
     path: /etc/sudoers
@@ -20,6 +52,14 @@
     state: absent
     regexp: "^%sudo"
     line: "#%sudo ALL=(ALL) ALL"
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: Add deploy to sudoers
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^%deploy"
+    line: "%deploy ALL=(ALL) ALL"
     validate: "/usr/sbin/visudo -cf %s"
 
 - name: Disable root login via password
@@ -43,7 +83,7 @@
 
 - name: Enable periodic updates
   copy:
-    src: ../files/10periodic
+    src: ../../../files/secure_server/10periodic
     dest: /etc/apt/apt.conf.d/10periodic
     owner: root
     group: root
